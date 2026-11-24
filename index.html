@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f4d33">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lernpool">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>Lernpool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE: ruhig, praktisch, ein Werkzeug fürs Handy in der Bib
+   IDEA: Forst-Markierung – Fächer, die zu lange liegen, bekommen den orangen Sprühpunkt wie ein markierter Baum
+   PICTURE: der Session-Wähler oben (Zeit + Fach) mit dem fertigen Plan darunter
+   COLOUR and TYPE: tiefes Tannengrün, Rinden-Beige, Signal-Orange; Barlow Condensed + Barlow
+   LAYOUT: eine Spalte, Session oben, Wochenziel im Kopf, Fächer-Karten im Raster, Backup unten */
+:root{color-scheme:light dark;
+--bg:light-dark(#f4f1ea,#0f1712);--card:light-dark(#fff,#18241c);--ink:light-dark(#14201a,#e8ede6);
+--mute:light-dark(#5d6b62,#9aa89f);--line:light-dark(#dcd6c8,#2a3a30);--fir:#1f4d33;--fir2:light-dark(#2f6b48,#4f9a6c);
+--mark:#e8742a;--markbg:light-dark(#fde9dc,#3a2314);--marktx:light-dark(#8a3d0d,#f3b48a)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Barlow,system-ui,sans-serif;overflow-x:clip}
+h1,h2,h3{font-family:"Barlow Condensed",Barlow,sans-serif;line-height:1.05;margin:0;text-wrap:balance}
+.wrap{max-width:1040px;margin:0 auto;padding:0 max(4vw,14px,env(safe-area-inset-left))}
+header{background:var(--fir);color:#eef4ee;padding:calc(18px + env(safe-area-inset-top)) 0 22px}
+header h1{font-size:clamp(32px,6vw,46px)}
+header p{margin:4px 0 0;color:#bcd2c2}
+.week{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
+.meter{flex:1 1 200px;height:14px;background:#ffffff26;border-radius:8px;overflow:hidden}
+.meter i{display:block;height:100%;background:var(--mark);border-radius:8px;transition:width .4s}
+.goal{display:flex;gap:6px;align-items:center}
+.goal button{background:#ffffff1f;color:#fff;border:0}
+section{padding:20px 0}
+h2{font-size:26px;margin-bottom:10px}
+.lbl{font-size:14px;color:var(--mute);margin:14px 0 6px;font-weight:600}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:44px;padding:0 14px;border-radius:22px;border:2px solid var(--line);background:var(--card);color:var(--ink);font:600 16px Barlow,sans-serif;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed=true]{background:var(--fir2);border-color:var(--fir2);color:#fff}
+.chip .dot{width:9px;height:9px;border-radius:50%;background:var(--mark)}
+.chip input{width:64px;border:0;background:transparent;color:inherit;font:inherit;text-align:right;padding:0}
+.plan{margin-top:14px;background:var(--card);border-radius:14px;border:1px solid var(--line);overflow:hidden}
+.plan .empty{padding:16px;color:var(--mute)}
+.plan h3{font-size:19px;padding:12px 14px 2px;color:var(--mute)}
+.row{display:flex;gap:12px;align-items:center;padding:11px 14px;border-top:1px solid var(--line)}
+.plan h3+.row,.row:first-child{border-top:0}
+.row .t{flex:1;overflow-wrap:anywhere}
+.row .t small{display:block;color:var(--mute);font-size:13px}
+.size{font:600 12px/1 Barlow;padding:5px 7px;border-radius:6px;background:var(--line);white-space:nowrap}
+.planfoot{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid var(--line);color:var(--mute);font-size:14px;align-items:center}
+button,select,input,textarea{font:inherit;font-size:16px}
+.btn{min-height:44px;padding:0 14px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;white-space:nowrap}
+.btn.pri{background:var(--fir2);border-color:var(--fir2);color:#fff}
+.btn.sm{min-height:38px;padding:0 10px;font-size:14px}
+.btn:focus-visible,.chip:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.check:focus-visible,.x:focus-visible{outline:3px solid var(--mark);outline-offset:2px}
+.check{width:44px;height:44px;flex:none;border-radius:50%;border:2px solid var(--fir2);background:transparent;color:var(--fir2);cursor:pointer;font-size:20px}
+.check.on{background:var(--fir2);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,290px),1fr));gap:12px}
+.subj{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;position:relative}
+.subj.stale{border-color:var(--mark)}
+.subj.stale::after{content:"";position:absolute;top:13px;right:13px;width:16px;height:16px;border-radius:50%;background:var(--mark);box-shadow:0 0 0 4px var(--markbg)}
+.subj h3{font-size:24px;padding-right:28px}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 10px}
+.tag{font-size:13px;padding:2px 8px;border-radius:20px;background:var(--line);white-space:nowrap}
+.tag.hot{background:var(--markbg);color:var(--marktx)}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--fir2)}
+.meta{display:flex;justify-content:space-between;gap:8px;font-size:14px;color:var(--mute);margin-top:6px;flex-wrap:wrap}
+.meta .warn{color:var(--mark);font-weight:600}
+.detail{margin-top:12px;border-top:1px solid var(--line);padding-top:6px}
+.detail .row{padding:8px 0}
+.detail .row.done .t{color:var(--mute);text-decoration:line-through}
+.form{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.form input,.form select,textarea{min-height:44px;border:1px solid var(--line);border-radius:10px;padding:0 10px;background:var(--bg);color:var(--ink);flex:1 1 130px}
+.form input.n{flex:0 1 78px}
+textarea{width:100%;min-height:90px;padding:10px;font-size:14px}
+.note{background:var(--markbg);border-radius:12px;padding:12px 14px;font-size:15px}
+.x{background:none;border:0;color:var(--mute);cursor:pointer;min-width:38px;min-height:38px;font-size:18px;flex:none}
+details{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+summary{cursor:pointer;font-weight:600;min-height:28px}
+.status{font-size:13px;color:var(--mute);padding:12px 0 calc(30px + env(safe-area-inset-bottom))}
+@media(prefers-reduced-motion:reduce){.meter i{transition:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <h1>Lernpool</h1>
+  <p>Kein Stundenplan. Zeit wählen, Fach wählen – fertig.</p>
+  <div class="week">
+    <b id="weekTxt"></b>
+    <div class="meter"><i id="weekBar"></i></div>
+    <span class="goal">Wochenziel <button class="btn sm" id="gMinus" aria-label="Ziel verringern">−</button><button class="btn sm" id="gPlus" aria-label="Ziel erhöhen">+</button></span>
+  </div>
+</div></header>
+<main class="wrap">
+  <section>
+    <h2>Lernsession</h2>
+    <div class="lbl">Wie viel Zeit hast du?</div>
+    <div class="chips" id="times"></div>
+    <div class="lbl">Welches Fach?</div>
+    <div class="chips" id="subjChips"></div>
+    <div class="plan" id="plan"></div>
+  </section>
+  <section>
+    <h2>Deine Fächer</h2>
+    <div class="grid" id="grid"></div>
+    <div class="lbl">Neues Fach</div>
+    <form class="form" id="addSubj">
+      <input id="sName" placeholder="Name, z. B. Stoffhaushalt" required style="flex-basis:100%">
+      <select id="sType"><option value="laufend">Dieses Semester</option><option value="nach">Nachholen</option></select>
+      <input id="sCp" class="n" type="number" min="0" max="30" placeholder="CP" aria-label="CP">
+      <input id="sExam" type="date" aria-label="Klausurtermin">
+      <button class="btn pri">Hinzufügen</button>
+    </form>
+  </section>
+  <section>
+    <details id="backup"><summary>Backup &amp; Umzug</summary>
+      <p class="meta" style="justify-content:flex-start">Sichert alle Fächer und Aufgaben als Text. Damit ziehst du auf ein anderes Gerät oder in eine andere Version um.</p>
+      <div class="form"><button class="btn" id="dl">Backup herunterladen</button><button class="btn" id="cp">Backup kopieren</button></div>
+      <div class="lbl">Backup einspielen (ersetzt den aktuellen Stand)</div>
+      <div class="form"><input type="file" id="file" accept=".json,application/json,text/plain"></div>
+      <textarea id="paste" placeholder="… oder Backup-Text hier einfügen"></textarea>
+      <div class="form"><button class="btn pri" id="imp">Einspielen</button></div>
+      <p class="meta" id="bmsg" style="justify-content:flex-start"></p>
+    </details>
+  </section>
+  <div class="status" id="status"></div>
+</main>
+<script>
+{
+const KEY='lernpool-v1',DAY=864e5,MIN={S:15,M:45,L:120},SZ={S:'Mini',M:'Mittel',L:'Groß'};
+const TIMES=[[15,'15 Min'],[30,'30 Min'],[60,'1 Std'],[120,'2 Std'],[180,'3 Std']];
+const now=()=>Date.now(),$=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Math.random().toString(36).slice(2,9);
+const fresh=()=>({goal:8,n:0,subjects:[],tasks:[]});
+function norm(x){if(!x||!Array.isArray(x.subjects)||!Array.isArray(x.tasks)||x.sample)return fresh();
+  x.goal=+x.goal||8;x.n=+x.n||0;x.tasks.forEach(t=>{if(t.o==null)t.o=++x.n});return x}
+let S=fresh(),doc=null,saveT=null,mins=0,pick='',shift=0,openId=null,editS=null,editT=null;
+try{S=norm(JSON.parse(localStorage.getItem(KEY)))}catch(e){}
+const weekStart=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime()};
+const daysAgo=ts=>ts?Math.floor((now()-ts)/DAY):null;
+const examIn=s=>s.exam?Math.ceil((new Date(s.exam+'T08:00').getTime()-now())/DAY):null;
+const fmtDate=d=>new Date(d+'T08:00').toLocaleDateString('de-DE',{day:'numeric',month:'short',year:'numeric'});
+const subj=id=>S.subjects.find(s=>s.id===id);
+const isStale=s=>{const a=daysAgo(s.last);return a==null||a>=7};
+const fmtMin=m=>m>=60?(m/60).toLocaleString('de-DE',{maximumFractionDigits:1})+' Std':m+' Min';
+function score(t){const s=subj(t.s);const a=Math.min(daysAgo(s.last)??21,21),e=examIn(s);
+  return a*2+(e!=null&&e>=0&&e<70?(70-e)/3:0)+(s.type==='nach'?4:0)+(s.cp||3)/3-t.o/1000}
+function fill(list,m,diverse){const out=[],used=new Set();let left=m;
+  for(const pass of diverse?[0,1]:[1])for(const t of list){if(out.includes(t)||(pass===0&&used.has(t.s)))continue;
+    if(MIN[t.size]<=left){out.push(t);used.add(t.s);left-=MIN[t.size]}if(left<15)break}
+  if(!out.length&&list.length)out.push(list[0]);return out}
+function plan(){const open=S.tasks.filter(t=>!t.done&&subj(t.s));
+  if(pick){const l=open.filter(t=>t.s===pick).sort((a,b)=>a.o-b.o);const p=fill(l,mins,false);return [p,l.filter(t=>!p.includes(t))]}
+  let l=open.sort((a,b)=>score(b)-score(a));if(l.length){const k=shift%l.length;l=l.slice(k).concat(l.slice(0,k))}
+  return [fill(l,mins,true),[]]}
+function taskRow(t,inPlan){const s=subj(t.s);
+  if(!inPlan&&editT===t.id)return `<form class="form" data-savet="${esc(t.id)}" style="padding:8px 0"><input name="t" value="${esc(t.title)}" required aria-label="Aufgabe" style="flex-basis:100%"><select name="z">${['S','M','L'].map(z=>`<option value="${z}"${t.size===z?' selected':''}>${SZ[z]} · ${MIN[z]} Min</option>`).join('')}</select><button class="btn pri">Speichern</button><button type="button" class="btn" data-cancel="1">Abbrechen</button></form>`;
+  return `<div class="row${t.done?' done':''}"><button class="check${t.done?' on':''}" data-tog="${esc(t.id)}" aria-label="${t.done?'Rückgängig':'Erledigt'}">✓</button>
+  <div class="t">${esc(t.title)}${inPlan&&s&&!pick?`<small>${esc(s.name)}</small>`:''}</div><span class="size">${SZ[t.size]}</span>
+  ${inPlan?'':`<button class="x" data-et="${esc(t.id)}" aria-label="Aufgabe bearbeiten">✎</button><button class="x" data-del="${esc(t.id)}" aria-label="Aufgabe löschen">×</button>`}</div>`}
+function render(){
+  const ws=weekStart(),wd=S.tasks.filter(t=>t.done&&t.doneAt>=ws).length;
+  $('weekTxt').textContent=`Diese Woche: ${wd} von ${S.goal} Aufgaben`;
+  $('weekBar').style.width=Math.min(100,wd/Math.max(1,S.goal)*100)+'%';
+  const custom=mins&&!TIMES.some(x=>x[0]===mins);
+  $('times').innerHTML=TIMES.map(([m,l])=>`<button class="chip" data-m="${m}" aria-pressed="${mins===m}">${l}</button>`).join('')
+    +`<label class="chip" aria-pressed="${!!custom}">Eigene <input type="number" id="cust" min="5" max="720" step="5" placeholder="Min" value="${custom?mins:''}" aria-label="Eigene Zeit in Minuten"></label>`;
+  if(pick&&!subj(pick))pick='';
+  $('subjChips').innerHTML=`<button class="chip" data-p="" aria-pressed="${!pick}">Egal – sag du’s mir</button>`+S.subjects.map(s=>`<button class="chip" data-p="${esc(s.id)}" aria-pressed="${pick===s.id}">${isStale(s)?'<span class="dot"></span>':''}${esc(s.name)}</button>`).join('');
+  if(!S.subjects.length)$('plan').innerHTML='<div class="empty">Leg unten zuerst deine Fächer und Aufgaben an.</div>';
+  else if(!mins)$('plan').innerHTML=`<div class="empty">Tipp an, wie viel Zeit du hast. Mit „Egal“ kommen Fächer zuerst, die lange liegen oder deren Klausur näher rückt – oder du wählst ein Fach und gehst es der Reihe nach durch.</div>`;
+  else{const [p,rest]=plan(),tot=p.reduce((a,t)=>a+MIN[t.size],0),sn=pick?subj(pick).name:'';
+    $('plan').innerHTML=p.length?`<h3>Dein Plan für ${fmtMin(mins)}${sn?' · '+esc(sn):''}</h3>`+p.map(t=>taskRow(t,1)).join('')
+      +`<div class="planfoot"><span>ca. ${fmtMin(tot)} · kurze Pause ohne Handy zwischen den Aufgaben</span>${pick?'':'<button class="btn sm" id="other">Andere Vorschläge</button>'}</div>`
+      +(rest.length?`<h3>Auch offen in ${esc(sn)}</h3>`+rest.map(t=>taskRow(t,1)).join(''):'')
+      :`<div class="empty">${pick?'In diesem Fach ist gerade nichts offen. Leg unten neue Aufgaben an.':'Gerade ist nichts offen. Leg unten Aufgaben an.'}</div>`}
+  $('grid').innerHTML=S.subjects.length?S.subjects.map(s=>{
+    const ts=S.tasks.filter(t=>t.s===s.id).sort((a,b)=>a.o-b.o),dn=ts.filter(t=>t.done).length,a=daysAgo(s.last),e=examIn(s),st=isStale(s);
+    if(editS===s.id)return `<div class="subj"><h3>Fach bearbeiten</h3><form class="form" data-saves="${esc(s.id)}">
+      <input name="n" value="${esc(s.name)}" required aria-label="Name" style="flex-basis:100%">
+      <select name="ty"><option value="laufend"${s.type!=='nach'?' selected':''}>Dieses Semester</option><option value="nach"${s.type==='nach'?' selected':''}>Nachholen</option></select>
+      <input name="cp" class="n" type="number" min="0" max="30" value="${esc(s.cp||'')}" placeholder="CP" aria-label="CP">
+      <input name="ex" type="date" value="${esc(s.exam||'')}" aria-label="Klausurtermin" style="flex-basis:100%">
+      <button class="btn pri">Speichern</button><button type="button" class="btn" data-cancel="1">Abbrechen</button></form></div>`;
+    return `<div class="subj${st?' stale':''}"><h3>${esc(s.name)}</h3><div class="tags">
+      ${s.type==='nach'?'<span class="tag hot">Nachholen</span>':''}${s.cp?`<span class="tag">${esc(s.cp)} CP</span>`:''}
+      ${e!=null?`<span class="tag${e>=0&&e<=21?' hot':''}">Klausur ${fmtDate(s.exam)} · ${e>0?'in '+e+' Tag'+(e===1?'':'en'):e===0?'heute':'vorbei'}</span>`:'<span class="tag">Klausurtermin offen</span>'}</div>
+      <div class="bar"><i style="width:${ts.length?dn/ts.length*100:0}%"></i></div>
+      <div class="meta"><span>${dn} / ${ts.length} erledigt</span><span class="${st?'warn':''}">${a==null?'noch nie angefasst':a===0?'heute dran gewesen':'seit '+a+' Tag'+(a===1?'':'en')+' nicht angefasst'}</span></div>
+      <div class="form"><button class="btn sm" data-open="${esc(s.id)}" aria-expanded="${openId===s.id}">${openId===s.id?'Zuklappen':'Aufgaben ('+(ts.length-dn)+' offen)'}</button></div>
+      ${openId===s.id?`<div class="detail">${ts.filter(t=>!t.done).concat(ts.filter(t=>t.done)).map(t=>taskRow(t,0)).join('')||'<div class="meta">Noch keine Aufgaben.</div>'}
+        <div class="lbl">Aufgabe hinzufügen</div>
+        <form class="form" data-addt="${esc(s.id)}"><input name="t" placeholder="z. B. Karteikarten VL 1–3" required style="flex-basis:100%"><select name="z"><option value="S">Mini · 15 Min</option><option value="M" selected>Mittel · 45 Min</option><option value="L">Groß · 2 Std</option></select><button class="btn pri">Hinzufügen</button></form>
+        <div class="lbl">Vorlesungen auf einmal anlegen (VL von – bis)</div>
+        <form class="form" data-bulk="${esc(s.id)}"><input class="n" name="a" type="number" min="1" value="1" aria-label="von VL"><input class="n" name="b" type="number" min="1" value="10" aria-label="bis VL"><input name="w" value="durcharbeiten" aria-label="Was tun"><button class="btn">Anlegen</button></form>
+        <div class="form"><button class="btn sm" data-es="${esc(s.id)}">Fach bearbeiten</button><button class="btn sm" data-touch="${esc(s.id)}">Heute dran gewesen</button><button class="btn sm" data-rm="${esc(s.id)}">Fach löschen</button></div></div>`:''}
+    </div>`}).join(''):'<div class="note">Noch keine Fächer. Leg unten dein erstes an – Name, CP und Klausurtermin. Dann öffnest du das Fach und legst Aufgaben oder gleich alle Vorlesungen an.</div>';
+}
+function setStatus(t){$('status').textContent=t}
+function save(){const j=JSON.stringify(S);try{localStorage.setItem(KEY,j)}catch(e){}
+  if(!doc){setStatus('Gespeichert auf diesem Gerät.');return}
+  clearTimeout(saveT);saveT=setTimeout(async()=>{try{await doc.set({json:j,at:now()});setStatus('Gespeichert – auf allen Geräten verfügbar.')}catch(e){setStatus('Nur auf diesem Gerät gespeichert.')}},600)}
+function change(fn){fn();render();save()}
+const touch=id=>{const s=subj(id);if(s)s.last=now()};
+document.addEventListener('click',ev=>{const b=ev.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.m){mins=+d.m;shift=0;render();return}
+  if(d.p!==undefined){pick=d.p;shift=0;if(!mins)mins=60;render();return}
+  if(b.id==='other'){shift++;render();return}
+  if(b.id==='gPlus')return change(()=>S.goal++);
+  if(b.id==='gMinus')return change(()=>S.goal=Math.max(1,S.goal-1));
+  if(d.es){editS=d.es;render();return}
+  if(d.et){editT=d.et;render();return}
+  if(d.cancel){editS=editT=null;render();return}
+  if(d.tog)return change(()=>{const t=S.tasks.find(x=>x.id===d.tog);if(!t)return;t.done=!t.done;t.doneAt=t.done?now():0;if(t.done)touch(t.s)});
+  if(d.del)return change(()=>S.tasks=S.tasks.filter(x=>x.id!==d.del));
+  if(d.open){openId=openId===d.open?null:d.open;editT=null;render();return}
+  if(d.touch)return change(()=>touch(d.touch));
+  if(d.rm){if(d.sure!=='1'){d.sure='1';b.textContent='Wirklich löschen?';return}
+    return change(()=>{S.subjects=S.subjects.filter(s=>s.id!==d.rm);S.tasks=S.tasks.filter(t=>t.s!==d.rm)})}
+  if(b.id==='dl'){try{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));
+    a.download='lernpool-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();$('bmsg').textContent='Download gestartet. Falls nichts passiert: „Backup kopieren“ nutzen.'}catch(e){$('bmsg').textContent='Download hier nicht möglich – nutz „Backup kopieren“.'}return}
+  if(b.id==='cp'){navigator.clipboard.writeText(JSON.stringify(S)).then(()=>$('bmsg').textContent='Kopiert. Füg den Text in der anderen Version unten ein.',()=>{$('paste').value=JSON.stringify(S);$('bmsg').textContent='Kopieren ging nicht – der Text steht jetzt im Feld unten, markier und kopier ihn von Hand.'});return}
+  if(b.id==='imp'){let x;try{x=JSON.parse($('paste').value)}catch(e){$('bmsg').textContent='Das ist kein gültiges Backup.';return}
+    if(!x||!Array.isArray(x.subjects)){$('bmsg').textContent='Das ist kein gültiges Backup.';return}
+    if(d.sure!=='1'){d.sure='1';b.textContent='Wirklich ersetzen?';return}
+    S=norm(x);pick='';openId=null;render();save();$('paste').value='';d.sure='';b.textContent='Einspielen';$('bmsg').textContent=`Eingespielt: ${S.subjects.length} Fächer, ${S.tasks.length} Aufgaben.`}
+});
+document.addEventListener('input',ev=>{if(ev.target.id==='cust'){const v=+ev.target.value;if(v>=5){mins=v;shift=0;
+  const pos=ev.target.selectionStart;render();const c=$('cust');c.focus();try{c.setSelectionRange(pos,pos)}catch(e){}}}});
+$('file').addEventListener('change',ev=>{const f=ev.target.files[0];if(!f)return;f.text().then(t=>{$('paste').value=t;$('bmsg').textContent='Datei geladen – jetzt „Einspielen“ tippen.'})});
+document.addEventListener('submit',ev=>{ev.preventDefault();const f=ev.target,d=f.dataset;
+  if(f.id==='addSubj'){const n=$('sName').value.trim();if(!n)return;
+    change(()=>{const id=uid();S.subjects.push({id,name:n,type:$('sType').value,cp:+$('sCp').value||0,exam:$('sExam').value,last:0});openId=id});f.reset();return}
+  if(d.saves){const s=subj(d.saves),n=f.elements.n.value.trim();if(!s||!n)return;change(()=>{s.name=n;s.type=f.elements.ty.value;s.cp=+f.elements.cp.value||0;s.exam=f.elements.ex.value;editS=null});return}
+  if(d.savet){const t=S.tasks.find(x=>x.id===d.savet),v=f.elements.t.value.trim();if(!t||!v)return;change(()=>{t.title=v;t.size=f.elements.z.value;editT=null});return}
+  if(d.addt){const t=f.elements.t.value.trim();if(!t)return;change(()=>S.tasks.push({id:uid(),s:d.addt,title:t,size:f.elements.z.value,done:false,doneAt:0,o:++S.n}));return}
+  if(d.bulk){const a=+f.elements.a.value,b=+f.elements.b.value,w=f.elements.w.value.trim()||'durcharbeiten';if(!a||!b||b<a||b-a>40)return;
+    change(()=>{for(let i=a;i<=b;i++)S.tasks.push({id:uid(),s:d.bulk,title:`VL ${i}: ${w}`,size:'M',done:false,doneAt:0,o:++S.n})})}
+});
+render();
+const inClaude=!!(window.claude&&window.claude.use);
+if(!inClaude){setStatus('Gespeichert auf diesem Gerät. Denk ab und zu an ein Backup.');
+  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{})}
+else{$('dl').style.display='none';setStatus('Verbinde Speicher …');
+  (async()=>{const timer=setTimeout(()=>setStatus('Nur auf diesem Gerät gespeichert.'),10000);
+    try{const db=await window.claude.use('db');if(!db)throw 0;const dc=db.doc('lernpool/state');const r=await dc.get();clearTimeout(timer);
+      const data=r&&(typeof r.data==='function'?r.data():(r.data!==undefined?r.data:r));
+      if(data&&data.json){try{S=norm(JSON.parse(data.json));render();localStorage.setItem(KEY,data.json)}catch(e){}}
+      doc=dc;setStatus('Gespeichert – auf allen Geräten verfügbar.')}
+    catch(e){clearTimeout(timer);setStatus('Nur auf diesem Gerät gespeichert.')}})()}
+}
+</script>
+</body>
+</html>
